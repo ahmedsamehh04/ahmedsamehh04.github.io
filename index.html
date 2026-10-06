@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <script>
 /* Tag links (/?restaurant=...) open the diner app: swap in the app shell (404.html) and keep the URL. */
-if(location.search||location.hash){document.documentElement.style.visibility='hidden';fetch('/404.html').then(function(r){return r.text()}).then(function(h){
+if(/[?&]restaurant=/.test(location.search)){document.documentElement.style.visibility='hidden';fetch('/404.html').then(function(r){return r.text()}).then(function(h){
 var d=new DOMParser().parseFromString(h,'text/html');
 document.head.innerHTML=d.head.innerHTML;document.body.innerHTML=d.body.innerHTML;document.body.removeAttribute('class');
 document.documentElement.style.visibility='';
