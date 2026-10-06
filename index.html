@@ -1,37 +1,448 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-  <head><script>if(location.pathname==='/'&&!location.search&&!location.hash)location.replace('/owners/')</script>
-    <meta charset="utf-8" />
-    <meta httpEquiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
-    <title>Tap-Taste</title>
-    <!-- The `react-native-web` recommended style reset: https://necolas.github.io/react-native-web/docs/setup/#root-element -->
-    <style id="expo-reset">
-      /* These styles make the body full-height */
-      html,
-      body {
-        height: 100%;
-      }
-      /* These styles disable body scrolling if you are using <ScrollView> */
-      body {
-        overflow: hidden;
-      }
-      /* These styles make the root element full-height */
-      #root {
-        display: flex;
-        height: 100%;
-        flex: 1;
-      }
-    </style>
-  <link rel="icon" href="/favicon.ico"/></head>
+<head>
+<meta charset="utf-8">
+<script>
+/* Tag links (/?restaurant=...) open the diner app: swap in the app shell (404.html) and keep the URL. */
+if(location.search||location.hash){document.documentElement.style.visibility='hidden';fetch('/404.html').then(function(r){return r.text()}).then(function(h){
+var d=new DOMParser().parseFromString(h,'text/html');
+document.head.innerHTML=d.head.innerHTML;document.body.innerHTML=d.body.innerHTML;document.body.removeAttribute('class');
+document.documentElement.style.visibility='';
+d.querySelectorAll('script[src]').forEach(function(o){var n=document.createElement('script');n.src=o.src;document.head.appendChild(n)})})}
+</script>
+<link rel="canonical" href="https://tapat.co/">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://tapat.co/">
+<meta property="og:title" content="TapAt | order @ your table">
+<meta property="og:description" content="TapAt turns every restaurant table into a smart menu. Guests tap a tag, order from their seat, and you see every order live. No app to download.">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>TapAt | order @ your table</title>
+<meta name="description" content="TapAt turns every restaurant table into a smart menu. Guests tap a tag, order from their seat, and you see every order live. No app to download.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;800&family=Unbounded:wght@700;900&display=swap">
+<style>
+/* Layout: full-width colour bands in the brand's approved backgrounds, one centred column inside each. */
+:root{
+  --grape:#6C4CF5; --lime:#D4FF3A; --chili:#FF4B2B; --mango:#FFB627;
+  --ink:#16141F; --mist:#F6F4FB; --white:#FFFFFF; --muted:#5B5769; --line:#E4E0F0;
+  --display:'Unbounded','Arial Black',system-ui,sans-serif;
+  --body:'Sora',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --wrap:1120px; --gutter:clamp(16px,4vw,40px);
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--white);color:var(--ink);font-family:var(--body);font-size:17px;line-height:1.55}
+h1,h2,h3,p{margin:0}
+h2,h3,.display{font-family:var(--display);font-weight:900;letter-spacing:-0.04em;line-height:1.02;text-wrap:balance;text-transform:lowercase}
+h2{font-size:clamp(2rem,5.4vw,3.6rem)}
+h3{font-size:1.15rem;letter-spacing:-0.03em;line-height:1.15}
+a{color:inherit}
+button{font:inherit;color:inherit;cursor:pointer}
+:focus-visible{outline:3px solid var(--chili);outline-offset:3px;border-radius:6px}
+.l-tap{fill:var(--tap,var(--white))}.l-at{stroke:var(--at,var(--lime))}.l-atf{fill:var(--at,var(--lime))}.l-dot{fill:var(--dot,var(--chili))}
+.on-light{--tap:var(--ink);--at:var(--grape)}
+.band{overflow-x:clip;padding-inline:var(--gutter);padding-block:clamp(56px,9vw,112px)}
+.wrap{max-width:var(--wrap);margin-inline:auto}
+.stack{display:flex;flex-direction:column;gap:20px}
+.pill{display:inline-block;align-self:flex-start;font-family:var(--display);font-weight:700;font-size:.78rem;letter-spacing:-0.02em;padding:9px 18px;border-radius:999px;background:var(--ink);color:var(--lime)}
+.lead{font-size:clamp(1.05rem,2vw,1.3rem);max-width:60ch}
+.btn{display:inline-flex;align-items:center;justify-content:center;min-height:52px;padding:14px 28px;border-radius:999px;border:0;font-family:var(--display);font-weight:900;font-size:.95rem;letter-spacing:-0.03em;text-decoration:none;text-transform:lowercase;transition:transform .2s}
+.btn:active{transform:scale(.88)}
+.btn-chili{background:var(--chili);color:var(--ink)}
+.btn-ghost{background:transparent;color:var(--white);box-shadow:inset 0 0 0 2px var(--white)}
+.btn-ink{background:var(--ink);color:var(--white)}
 
-  <body>
-    <!-- Use static rendering with Expo Router to support running without JavaScript. -->
-    <noscript>
-      You need to enable JavaScript to run this app.
-    </noscript>
-    <!-- The root element for your Expo app. -->
-    <div id="root"></div>
-  <script src="/_expo/static/js/web/entry-77834347f5b792c174463f208b999685.js" defer></script>
+/* nav */
+.nav{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--ink);color:var(--white);padding-inline:var(--gutter)}
+.nav .wrap{display:flex;align-items:center;justify-content:space-between;gap:16px;min-height:68px}
+.nav svg{height:30px;width:auto;display:block}
+.nav ul{display:flex;gap:26px;list-style:none;margin:0;padding:0;font-weight:600;font-size:.95rem}
+.nav ul a{text-decoration:none}.nav ul a:hover{color:var(--lime)}
+.nav .btn{white-space:nowrap;min-height:44px;padding:8px 20px;font-size:.8rem;background:var(--lime);color:var(--ink)}
+@media (max-width:760px){.nav ul{display:none}}
+
+/* hero */
+.hero{background:var(--ink);color:var(--white);padding-block:clamp(40px,7vw,88px) clamp(56px,9vw,112px);overflow:hidden}
+.hero .wrap{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,.75fr);gap:40px;align-items:center}
+.lockup{--lh:clamp(44px,11.5vw,84px);display:flex;flex-direction:column;align-items:flex-start;gap:calc(var(--lh)*.05)}
+.lockup svg{height:var(--lh);width:auto;display:block}
+.kin{height:calc(var(--lh)*1.2);overflow:hidden}
+.kin span{display:block;font-family:var(--display);font-weight:900;font-size:calc(var(--lh)*1.12);line-height:calc(var(--lh)*1.2);letter-spacing:-0.04em;color:var(--lime);white-space:nowrap}
+.kin span.out{animation:kout .4s cubic-bezier(.7,0,.3,1) forwards}
+.kin span.in{animation:kin .4s cubic-bezier(.7,0,.3,1)}
+@keyframes kout{to{transform:translateY(-110%)}}
+@keyframes kin{from{transform:translateY(110%)}}
+.hero h1{font-family:var(--body);font-weight:800;font-size:clamp(1.4rem,3vw,2.1rem);line-height:1.2;max-width:22ch;text-wrap:balance}
+.hero .sub{max-width:46ch;opacity:.92}
+.cta-row{display:flex;flex-wrap:wrap;gap:12px}
+.sticker{justify-self:center;width:min(100%,330px);aspect-ratio:1;border-radius:50%;background:var(--lime);box-shadow:14px 14px 0 var(--grape);transform:rotate(-7deg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;color:var(--ink)}
+.sticker svg{width:46%;height:auto;--at:var(--grape);animation:wobble 2.4s ease-in-out infinite;transform-origin:50% 55%}
+.sticker b{font-family:var(--display);font-weight:900;font-size:1.3rem;letter-spacing:-0.04em}
+@keyframes wobble{0%,100%{transform:rotate(-8deg)}50%{transform:rotate(8deg)}}
+@media (max-width:860px){.hero .wrap{grid-template-columns:minmax(0,1fr)}.sticker{width:220px;justify-self:start;margin-left:8px}}
+
+/* steps */
+.steps{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:20px;counter-reset:s}
+.steps li{counter-increment:s;display:flex;flex-direction:column;gap:10px;padding-top:18px;border-top:4px solid var(--ink)}
+.steps li::before{content:"0" counter(s);font-family:var(--display);font-weight:900;font-size:2.6rem;letter-spacing:-0.04em;line-height:1;color:var(--grape)}
+.steps p{color:var(--muted);font-size:.98rem}
+@media (max-width:900px){.steps{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:520px){.steps{grid-template-columns:minmax(0,1fr)}}
+
+/* guest demo */
+.guests{background:var(--mist)}.guests .phone{box-shadow:14px 14px 0 var(--ink)}
+.demo{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,360px);gap:clamp(28px,6vw,72px);align-items:start}
+.tabs{display:flex;flex-direction:column;gap:10px}
+.tab{display:flex;flex-direction:column;gap:4px;text-align:left;background:var(--white);border:2px solid var(--line);border-radius:22px;padding:18px 22px;min-height:44px}
+.tab b{font-family:var(--display);font-weight:900;letter-spacing:-0.03em;text-transform:lowercase}
+.tab span{color:var(--muted);font-size:.95rem}
+.tab[aria-selected="true"]{background:var(--ink);border-color:var(--ink);color:var(--white)}
+.tab[aria-selected="true"] span{color:var(--mist)}
+.tab[aria-selected="true"] b{color:var(--lime)}
+.more{color:var(--muted);font-size:.95rem;max-width:52ch}
+.phone{background:var(--ink);border-radius:46px;padding:12px;box-shadow:14px 14px 0 var(--grape);max-width:360px;width:calc(100% - 14px);justify-self:center}
+.screen{background:var(--white);border-radius:36px;overflow:hidden;display:flex;flex-direction:column;min-height:560px}
+.shead{background:var(--grape);color:var(--white);padding:26px 22px 20px;display:flex;flex-direction:column;gap:4px}
+.shead small{font-weight:600;font-size:.8rem}
+.shead b{font-family:var(--display);font-weight:900;font-size:1.25rem;letter-spacing:-0.04em}
+.pane{flex:1;display:flex;flex-direction:column;gap:12px;padding:18px 20px 20px}
+.row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding-block:10px;border-bottom:2px solid var(--mist)}
+.row b{font-weight:800;font-size:.98rem}
+.row small{color:var(--muted);font-size:.82rem;font-variant-numeric:tabular-nums}
+.add{flex:none;width:44px;height:44px;border-radius:50%;border:0;background:var(--grape);color:var(--white);font-weight:800;font-size:1.4rem;line-height:1;transition:transform .2s}
+.add:active{transform:scale(.88)}
+.bar{margin-top:auto;display:flex;justify-content:space-between;align-items:center;width:100%;border:0;border-radius:18px;background:var(--chili);color:var(--ink);font-weight:800;padding:16px 18px;min-height:52px;font-variant-numeric:tabular-nums}
+.seg{display:flex;gap:6px;background:var(--mist);border-radius:999px;padding:5px;align-self:flex-start}
+.seg button{border:0;background:transparent;border-radius:999px;padding:10px 22px;min-height:44px;font-weight:600}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--white);font-weight:800}
+.note{font-size:.85rem;color:var(--muted)}
+.big{font-family:var(--display);font-weight:900;font-size:1.5rem;letter-spacing:-0.04em;line-height:1.05;text-transform:lowercase}
+.card-ink{background:var(--ink);color:var(--white);border-radius:22px;padding:20px;display:flex;flex-direction:column;gap:10px}
+.card-ink small{color:var(--lime);font-weight:800}
+.meter{height:10px;border-radius:5px;background:#3A3648;overflow:hidden}
+.meter i{display:block;height:100%;width:60%;background:var(--mango);border-radius:5px}
+.stars{display:flex;gap:4px}
+.stars button{border:0;background:transparent;padding:0;width:44px;height:44px}
+.stars svg{width:34px;height:34px;fill:var(--line)}
+.stars button.on svg{fill:var(--mango)}
+textarea{font:inherit;width:100%;min-height:88px;border:2px solid var(--line);border-radius:16px;padding:12px 14px;resize:vertical;background:var(--white);color:var(--ink)}
+.sent{background:var(--lime);border-radius:22px;padding:22px;display:flex;flex-direction:column;gap:8px}
+.eg{text-align:center;font-size:.8rem;color:var(--muted);margin-top:14px}
+@media (max-width:860px){.demo{grid-template-columns:minmax(0,1fr)}}
+
+/* owners */
+.owners{background:var(--mist)}
+.dash{background:var(--white);color:var(--ink);border-radius:28px;overflow:hidden;box-shadow:14px 14px 0 var(--grape);max-width:760px;width:calc(100% - 14px)}
+.dash-h{background:var(--mist);padding:18px 24px;display:flex;justify-content:space-between;align-items:center;gap:12px}
+.dash-h b{font-family:var(--display);font-weight:900;letter-spacing:-0.04em;font-size:1.1rem}
+.live{display:flex;align-items:center;gap:8px;font-weight:600;font-size:.9rem}
+.live i{width:12px;height:12px;border-radius:50%;background:var(--chili)}
+.scroll{overflow-x:auto}
+table{border-collapse:collapse;width:100%;min-width:460px;font-variant-numeric:tabular-nums}
+td{padding:14px 24px;border-top:2px solid var(--mist);white-space:nowrap}
+td:first-child{font-family:var(--display);font-weight:700;letter-spacing:-0.03em}
+td:nth-child(2){color:var(--muted)}
+td:last-child{text-align:right;font-weight:800}
+.st{display:inline-block;font-weight:800;font-size:.85rem;padding:6px 14px;border-radius:999px}
+.st-new{background:var(--lime)}.st-prep{background:var(--grape);color:var(--white)}.st-ready{background:var(--mango)}.st-served{background:var(--mist)}
+.feats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:28px 32px}
+.feats div{display:flex;flex-direction:column;gap:8px;border-top:2px solid var(--line);padding-top:16px}
+.feats h3{color:var(--grape)}
+.feats p{color:var(--muted);font-size:.98rem}
+@media (max-width:860px){.feats{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:520px){.feats{grid-template-columns:minmax(0,1fr)}}
+
+/* answers */
+.qs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:32px}
+.qs div{display:flex;flex-direction:column;gap:10px;border-top:4px solid var(--ink);padding-top:18px}
+.qs h3{font-size:1.3rem;color:var(--grape)}
+.qs p{color:var(--muted)}
+@media (max-width:860px){.qs{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:520px){.qs{grid-template-columns:minmax(0,1fr)}}
+
+/* faq */
+.faq{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:28px 48px}
+.faq div{display:flex;flex-direction:column;gap:8px}
+.faq p{color:var(--muted)}
+@media (max-width:760px){.faq{grid-template-columns:minmax(0,1fr)}}
+
+/* contact */
+.contact{background:var(--ink);color:var(--white)}
+.contact .wrap{display:flex;flex-direction:column;gap:22px;align-items:flex-start}
+.contact .pill{background:var(--lime);color:var(--ink)}
+.contact .lead{color:var(--mist)}
+.addr{color:var(--lime);font-family:var(--display);font-weight:900;font-size:clamp(1.1rem,3.4vw,1.8rem);letter-spacing:-0.04em;user-select:all;overflow-wrap:anywhere}
+footer{border-top:2px solid #3A3648;background:var(--ink);color:var(--mist);padding-inline:var(--gutter);padding-block:32px}
+footer .wrap{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:16px;font-size:.9rem}
+footer svg{height:28px;width:auto;display:block}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}.sticker svg,.kin span{animation:none!important}.btn,.add{transition:none}}
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="logo" viewBox="91.2 175.8 160.7 48.4"><path class="l-tap" d="M 92.20 194.46 L 92.20 188.82 L 98.04 185.88 L 103.78 176.78 L 111.16 176.78 L 111.16 184.90 L 122.79 184.90 L 122.79 194.46 L 111.16 194.46 L 111.16 200.55 C 111.16 202.44 111.53 203.78 112.25 204.55 C 112.97 205.33 114.45 205.72 116.69 205.72 C 118.07 205.72 119.30 205.62 120.39 205.43 C 121.47 205.25 122.44 205.01 123.31 204.74 L 123.31 214.24 C 122.14 214.58 120.70 214.89 118.99 215.15 C 117.29 215.41 115.50 215.53 113.64 215.53 C 110.13 215.53 107.22 215.01 104.91 213.96 C 102.60 212.91 100.88 211.38 99.75 209.39 C 98.61 207.39 98.04 205.01 98.04 202.26 L 98.04 194.46 Z M 92.20 194.46 "/> <path class="l-tap" d="M 151.21 214.60 L 149.71 204.12 L 151.21 199.78 L 149.71 195.49 L 151.21 184.90 L 164.84 184.90 L 162.78 199.73 L 164.84 214.60 Z M 153.94 199.78 C 153.60 202.94 152.75 205.71 151.39 208.07 C 150.03 210.43 148.25 212.26 146.07 213.57 C 143.88 214.88 141.37 215.53 138.55 215.53 C 135.66 215.53 133.11 214.88 130.92 213.57 C 128.74 212.26 127.03 210.42 125.81 208.04 C 124.59 205.67 123.98 202.91 123.98 199.78 C 123.98 196.61 124.59 193.83 125.81 191.46 C 127.03 189.08 128.74 187.24 130.92 185.93 C 133.11 184.62 135.66 183.97 138.55 183.97 C 141.37 183.97 143.88 184.61 146.07 185.91 C 148.25 187.19 150.03 189.02 151.41 191.38 C 152.79 193.74 153.63 196.54 153.94 199.78 Z M 137.20 199.78 C 137.20 200.91 137.44 201.92 137.90 202.80 C 138.37 203.67 139.02 204.37 139.87 204.89 C 140.71 205.41 141.68 205.67 142.78 205.67 C 143.92 205.67 145.02 205.41 146.09 204.89 C 147.16 204.37 148.10 203.67 148.91 202.80 C 149.71 201.92 150.28 200.91 150.58 199.78 C 150.28 198.64 149.71 197.62 148.91 196.73 C 148.10 195.83 147.16 195.13 146.09 194.61 C 145.02 194.09 143.92 193.83 142.78 193.83 C 141.68 193.83 140.71 194.09 139.87 194.61 C 139.02 195.13 138.37 195.83 137.90 196.73 C 137.44 197.62 137.20 198.64 137.20 199.78 Z M 137.20 199.78 "/> <path class="l-tap" d="M 167.48 184.90 L 180.60 184.90 L 180.60 192.23 L 180.08 193.68 L 180.08 203.5 L 180.60 206.34 L 180.60 223.13 L 167.48 223.13 Z M 176.73 199.78 C 177.07 196.54 177.92 193.74 179.28 191.38 C 180.64 189.02 182.43 187.19 184.63 185.91 C 186.83 184.61 189.33 183.97 192.12 183.97 C 195.05 183.97 197.60 184.62 199.77 185.93 C 201.94 187.24 203.64 189.08 204.86 191.46 C 206.08 193.83 206.69 196.61 206.69 199.78 C 206.69 202.91 206.08 205.67 204.86 208.04 C 203.64 210.42 201.94 212.26 199.77 213.57 C 197.60 214.88 195.05 215.53 192.12 215.53 C 189.30 215.53 186.79 214.88 184.60 213.57 C 182.42 212.26 180.66 210.43 179.31 208.07 C 177.97 205.71 177.10 202.94 176.73 199.78 Z M 193.47 199.78 C 193.47 198.64 193.23 197.62 192.77 196.73 C 192.30 195.83 191.65 195.13 190.81 194.61 C 189.96 194.09 188.99 193.83 187.89 193.83 C 186.75 193.83 185.65 194.09 184.58 194.61 C 183.51 195.13 182.58 195.83 181.79 196.73 C 181.00 197.62 180.43 198.64 180.08 199.78 C 180.43 200.91 181.00 201.92 181.79 202.80 C 182.58 203.67 183.51 204.37 184.58 204.89 C 185.65 205.41 186.75 205.67 187.89 205.67 C 188.99 205.67 189.96 205.41 190.81 204.89 C 191.65 204.37 192.30 203.67 192.77 202.80 C 193.23 201.92 193.47 200.91 193.47 199.78 Z M 193.47 199.78 "/> <g> <path fill="none" stroke-width="140" stroke-linecap="butt" stroke-linejoin="miter" class="l-at" d="M 159.98 -0.01 C 159.98 10.53 158.93 20.90 156.91 31.19 C 154.89 41.47 151.81 51.50 147.85 61.25 C 143.81 70.93 138.88 80.16 132.99 88.86 C 127.19 97.65 120.60 105.74 113.12 113.13 C 105.74 120.60 97.65 127.19 88.86 132.99 C 80.16 138.88 70.93 143.81 61.25 147.85 C 51.50 151.81 41.47 154.89 31.19 156.91 C 20.90 158.93 10.53 159.98 -0.01 159.98 C -10.48 159.98 -20.94 158.93 -31.22 156.91 C -41.51 154.89 -51.53 151.81 -61.20 147.85 C -70.96 143.81 -80.19 138.88 -88.90 132.99 C -97.60 127.19 -105.69 120.60 -113.16 113.13 C -120.55 105.74 -127.23 97.65 -133.03 88.86 C -138.83 80.16 -143.76 70.93 -147.80 61.25 C -151.84 51.50 -154.83 41.47 -156.94 31.19 C -158.97 20.90 -160.02 10.53 -160.02 -0.01 C -160.02 -10.47 -158.97 -20.94 -156.94 -31.22 C -154.83 -41.51 -151.84 -51.53 -147.80 -61.20 C -143.76 -70.96 -138.83 -80.19 -133.03 -88.90 C -127.23 -97.60 -120.55 -105.69 -113.16 -113.16 C -105.69 -120.55 -97.60 -127.23 -88.90 -133.03 C -80.19 -138.83 -70.96 -143.76 -61.20 -147.80 C -51.53 -151.84 -41.51 -154.83 -31.22 -156.94 C -20.94 -158.97 -10.48 -160.02 -0.01 -160.02 C 10.53 -160.02 20.90 -158.97 31.19 -156.94 C 41.47 -154.83 51.50 -151.84 61.25 -147.80 C 70.93 -143.76 80.16 -138.83 88.86 -133.03 C 97.65 -127.23 105.74 -120.55 113.12 -113.16 C 120.60 -105.69 127.19 -97.60 132.99 -88.90 C 138.88 -80.19 143.81 -70.96 147.85 -61.20 C 151.81 -51.53 154.89 -41.51 156.91 -31.22 C 158.93 -20.94 159.98 -10.47 159.98 -0.01 Z M 159.98 -0.01 " transform="matrix(0.04, 0, 0, 0.04, 230.63, 199.62)"/> </g> <path fill="none" stroke-width="140" stroke-linecap="butt" stroke-linejoin="round" class="l-at" d="M 159.98 -230.00 L 159.98 -0.01 C 159.98 7.36 160.69 14.66 162.18 21.96 C 163.59 29.17 165.70 36.20 168.60 43.06 C 171.41 49.91 174.84 56.33 178.97 62.49 C 183.02 68.64 187.77 74.35 192.95 79.54 C 198.14 84.73 203.85 89.39 210.01 93.52 C 216.16 97.65 222.58 101.08 229.44 103.89 C 236.30 106.80 243.33 108.91 250.54 110.31 C 257.83 111.81 265.13 112.51 272.52 112.51 C 279.90 112.51 287.20 111.81 294.41 110.31 C 301.71 108.91 308.74 106.80 315.51 103.89 C 322.37 101.08 328.87 97.65 335.03 93.52 C 341.18 89.39 346.81 84.73 352.08 79.54 C 357.27 74.35 361.93 68.64 366.06 62.49 C 370.10 56.33 373.62 49.91 376.43 43.06 C 379.25 36.20 381.36 29.17 382.85 21.96 C 384.26 14.66 384.96 7.36 384.96 -0.01 C 384.96 -23.22 382.94 -46.26 378.72 -69.03 C 374.59 -91.89 368.43 -114.13 360.17 -135.84 C 351.99 -157.56 341.97 -178.39 330.01 -198.26 C 318.06 -218.13 304.43 -236.86 289.05 -254.27 C 273.75 -271.67 256.96 -287.59 238.76 -302.00 C 220.56 -316.34 201.22 -329.00 180.73 -339.90 C 160.25 -350.80 138.88 -359.77 116.82 -366.80 C 94.66 -373.83 72.16 -378.84 49.12 -381.83 C 26.09 -384.82 2.97 -385.70 -20.15 -384.47 C -43.36 -383.24 -66.21 -379.90 -88.81 -374.62 C -111.40 -369.26 -133.29 -361.88 -154.57 -352.56 C -175.85 -343.24 -196.07 -332.07 -215.32 -319.15 C -234.57 -306.14 -252.42 -291.54 -269.04 -275.37 C -285.65 -259.10 -300.69 -241.52 -314.05 -222.62 C -327.50 -203.71 -339.11 -183.67 -348.95 -162.66 C -358.71 -141.65 -366.62 -119.84 -372.43 -97.42 C -378.32 -75.01 -382.18 -52.15 -383.86 -29.03 C -385.61 -5.90 -385.35 17.21 -382.89 40.33 C -380.43 63.36 -375.94 86.05 -369.44 108.29 C -362.93 130.62 -354.49 152.07 -344.03 172.82 C -333.66 193.57 -321.43 213.17 -307.46 231.72 C -293.48 250.27 -278.00 267.42 -260.86 283.16 C -243.80 298.89 -225.52 312.96 -205.91 325.35 C -186.31 337.75 -165.74 348.30 -144.20 357.00 " transform="matrix(0.04, 0, 0, 0.04, 230.63, 199.62)"/> <path class="l-atf" d="M 227.33 215.48 C 227.33 215.89 227.25 216.29 227.10 216.67 C 226.94 217.05 226.71 217.39 226.42 217.68 C 226.13 217.98 225.79 218.20 225.41 218.35 C 225.03 218.51 224.64 218.59 224.22 218.59 C 223.81 218.59 223.41 218.51 223.03 218.35 C 222.65 218.20 222.32 217.98 222.02 217.68 C 221.73 217.39 221.51 217.05 221.35 216.67 C 221.19 216.29 221.11 215.89 221.11 215.48 C 221.11 215.07 221.19 214.67 221.35 214.29 C 221.51 213.91 221.73 213.58 222.02 213.28 C 222.32 212.99 222.65 212.77 223.03 212.61 C 223.41 212.45 223.81 212.37 224.22 212.37 C 224.64 212.37 225.03 212.45 225.41 212.61 C 225.79 212.77 226.13 212.99 226.42 213.28 C 226.71 213.58 226.94 213.91 227.10 214.29 C 227.25 214.67 227.33 215.07 227.33 215.48 Z M 227.33 215.48 "/> <path class="l-dot" d="M 241.44 215.25 C 241.44 215.76 241.35 216.25 241.15 216.72 C 240.95 217.19 240.67 217.61 240.32 217.98 C 239.95 218.33 239.53 218.62 239.06 218.81 C 238.59 219.01 238.10 219.10 237.58 219.10 C 237.08 219.10 236.58 219.01 236.11 218.81 C 235.64 218.62 235.22 218.33 234.86 217.98 C 234.50 217.61 234.22 217.19 234.02 216.72 C 233.83 216.25 233.73 215.76 233.73 215.25 C 233.73 214.74 233.83 214.25 234.02 213.77 C 234.22 213.30 234.50 212.88 234.86 212.52 C 235.22 212.16 235.64 211.88 236.11 211.68 C 236.58 211.49 237.08 211.39 237.58 211.39 C 238.10 211.39 238.59 211.49 239.06 211.68 C 239.53 211.88 239.95 212.16 240.32 212.52 C 240.67 212.88 240.95 213.30 241.15 213.77 C 241.35 214.25 241.44 214.74 241.44 215.25 Z M 241.44 215.25 "/></symbol>
+  <symbol id="sym" viewBox="100.5 201.7 181.7 178.6"><g> <path fill="none" stroke-width="140" stroke-linecap="butt" stroke-linejoin="miter" class="l-at" d="M 160.00 -0.00 C 160.00 5.23 159.74 10.46 159.23 15.68 C 158.71 20.88 157.94 26.06 156.93 31.20 C 155.90 36.36 154.62 41.44 153.11 46.43 C 151.59 51.45 149.83 56.38 147.83 61.22 C 145.80 66.07 143.58 70.79 141.11 75.42 C 138.64 80.03 135.95 84.52 133.04 88.89 C 130.13 93.24 127.01 97.45 123.67 101.50 C 120.35 105.54 116.83 109.42 113.13 113.13 C 109.43 116.83 105.55 120.35 101.50 123.69 C 97.46 127.00 93.25 130.12 88.88 133.03 C 84.53 135.95 80.04 138.64 75.43 141.10 C 70.79 143.57 66.06 145.82 61.23 147.82 C 56.39 149.82 51.45 151.58 46.44 153.10 C 41.42 154.62 36.34 155.89 31.21 156.92 C 26.07 157.93 20.89 158.70 15.67 159.23 C 10.47 159.73 5.23 160.00 -0.00 160.00 C -5.24 160.00 -10.46 159.73 -15.68 159.23 C -20.89 158.70 -26.07 157.93 -31.21 156.92 C -36.35 155.89 -41.43 154.62 -46.44 153.10 C -51.46 151.58 -56.38 149.82 -61.23 147.82 C -66.07 145.82 -70.80 143.57 -75.41 141.10 C -80.04 138.64 -84.53 135.95 -88.88 133.03 C -93.23 130.12 -97.44 127.00 -101.51 123.69 C -105.55 120.35 -109.44 116.83 -113.14 113.13 C -116.84 109.42 -120.36 105.54 -123.68 101.50 C -127.00 97.45 -130.11 93.24 -133.02 88.89 C -135.94 84.52 -138.63 80.03 -141.10 75.42 C -143.56 70.79 -145.81 66.07 -147.81 61.22 C -149.81 56.38 -151.59 51.45 -153.11 46.43 C -154.63 41.44 -155.90 36.36 -156.91 31.20 C -157.95 26.06 -158.71 20.88 -159.22 15.68 C -159.75 10.46 -159.99 5.23 -159.99 -0.00 C -159.99 -5.24 -159.75 -10.46 -159.22 -15.68 C -158.71 -20.90 -157.95 -26.08 -156.91 -31.22 C -155.90 -36.36 -154.63 -41.43 -153.11 -46.45 C -151.59 -51.45 -149.81 -56.38 -147.81 -61.22 C -145.81 -66.07 -143.56 -70.81 -141.10 -75.42 C -138.63 -80.05 -135.94 -84.52 -133.02 -88.89 C -130.11 -93.24 -127.00 -97.45 -123.68 -101.49 C -120.36 -105.56 -116.84 -109.42 -113.14 -113.12 C -109.44 -116.85 -105.55 -120.35 -101.51 -123.68 C -97.44 -127.00 -93.23 -130.12 -88.88 -133.03 C -84.53 -135.94 -80.04 -138.63 -75.41 -141.10 C -70.80 -143.57 -66.07 -145.81 -61.23 -147.82 C -56.38 -149.82 -51.46 -151.58 -46.44 -153.10 C -41.43 -154.63 -36.35 -155.89 -31.21 -156.92 C -26.07 -157.95 -20.89 -158.72 -15.68 -159.23 C -10.46 -159.73 -5.24 -159.99 -0.00 -159.99 C 5.23 -159.99 10.47 -159.73 15.67 -159.23 C 20.89 -158.72 26.07 -157.95 31.21 -156.92 C 36.34 -155.89 41.42 -154.63 46.44 -153.10 C 51.45 -151.58 56.39 -149.82 61.23 -147.82 C 66.06 -145.81 70.79 -143.57 75.43 -141.10 C 80.04 -138.63 84.53 -135.94 88.88 -133.03 C 93.25 -130.12 97.46 -127.00 101.50 -123.68 C 105.55 -120.35 109.43 -116.85 113.13 -113.12 C 116.83 -109.42 120.35 -105.56 123.67 -101.49 C 127.01 -97.45 130.13 -93.24 133.04 -88.89 C 135.95 -84.52 138.64 -80.05 141.11 -75.42 C 143.58 -70.81 145.80 -66.07 147.83 -61.22 C 149.83 -56.38 151.59 -51.45 153.11 -46.45 C 154.62 -41.43 155.90 -36.36 156.93 -31.22 C 157.94 -26.08 158.71 -20.90 159.23 -15.68 C 159.74 -10.46 160.00 -5.24 160.00 -0.00 Z M 160.00 -0.00 " transform="matrix(0.19, 0, 0, 0.19, 191.36, 292.58)"/> </g> <g> <path fill="none" stroke-width="140" stroke-linecap="butt" stroke-linejoin="round" class="l-at" d="M 160.00 -229.99 L 160.00 -0.00 C 160.00 3.69 160.19 7.35 160.53 11.03 C 160.89 14.69 161.44 18.33 162.15 21.93 C 162.88 25.56 163.77 29.14 164.84 32.66 C 165.91 36.18 167.14 39.63 168.56 43.05 C 169.98 46.45 171.53 49.77 173.27 53.03 C 175.01 56.28 176.91 59.44 178.96 62.49 C 181.00 65.57 183.19 68.52 185.53 71.37 C 187.88 74.21 190.35 76.94 192.94 79.55 C 195.55 82.16 198.28 84.62 201.13 86.95 C 203.98 89.30 206.93 91.48 209.99 93.55 C 213.06 95.59 216.22 97.47 219.46 99.21 C 222.71 100.95 226.03 102.53 229.45 103.92 C 232.85 105.34 236.31 106.57 239.85 107.64 C 243.37 108.72 246.93 109.61 250.55 110.34 C 254.17 111.04 257.81 111.59 261.47 111.95 C 265.13 112.32 268.81 112.50 272.50 112.50 C 276.18 112.50 279.86 112.32 283.52 111.95 C 287.18 111.59 290.82 111.04 294.45 110.34 C 298.07 109.61 301.63 108.72 305.15 107.64 C 308.69 106.57 312.15 105.34 315.54 103.92 C 318.94 102.53 322.28 100.95 325.54 99.21 C 328.77 97.47 331.93 95.59 335.00 93.55 C 338.06 91.48 341.01 89.30 343.86 86.95 C 346.72 84.62 349.45 82.16 352.04 79.55 C 354.65 76.94 357.11 74.21 359.46 71.37 C 361.79 68.52 363.99 65.57 366.04 62.49 C 368.08 59.44 369.98 56.28 371.72 53.03 C 373.44 49.77 375.02 46.45 376.43 43.05 C 377.85 39.63 379.08 36.18 380.16 32.66 C 381.23 29.14 382.12 25.56 382.83 21.93 C 383.55 18.33 384.10 14.69 384.44 11.03 C 384.81 7.35 384.99 3.69 384.99 -0.00 C 384.99 -11.57 384.46 -23.13 383.43 -34.66 C 382.38 -46.21 380.82 -57.66 378.74 -69.05 C 376.68 -80.45 374.09 -91.72 370.99 -102.89 C 367.90 -114.03 364.30 -125.04 360.21 -135.86 C 356.12 -146.70 351.55 -157.34 346.51 -167.76 C 341.46 -178.18 335.95 -188.36 329.99 -198.29 C 324.02 -208.20 317.63 -217.85 310.79 -227.20 C 303.95 -236.54 296.71 -245.56 289.06 -254.26 C 281.42 -262.96 273.39 -271.29 264.99 -279.27 C 256.60 -287.24 247.86 -294.80 238.77 -301.98 C 229.67 -309.16 220.29 -315.92 210.60 -322.25 C 200.91 -328.60 190.95 -334.49 180.72 -339.91 C 170.50 -345.35 160.04 -350.31 149.36 -354.82 C 138.70 -359.31 127.84 -363.32 116.81 -366.82 C 105.77 -370.34 94.60 -373.35 83.29 -375.86 C 71.99 -378.35 60.60 -380.35 49.11 -381.83 C 37.62 -383.30 26.11 -384.25 14.52 -384.70 C 2.95 -385.12 -8.60 -385.04 -20.17 -384.44 C -31.74 -383.83 -43.25 -382.72 -54.72 -381.06 C -66.17 -379.42 -77.54 -377.25 -88.80 -374.58 C -100.07 -371.91 -111.20 -368.74 -122.18 -365.08 C -133.17 -361.39 -143.95 -357.23 -154.57 -352.57 C -165.17 -347.92 -175.55 -342.80 -185.68 -337.22 C -195.83 -331.64 -205.71 -325.61 -215.30 -319.14 C -224.90 -312.66 -234.19 -305.77 -243.17 -298.44 C -252.15 -291.14 -260.79 -283.43 -269.06 -275.34 C -277.34 -267.25 -285.25 -258.79 -292.77 -249.99 C -300.30 -241.17 -307.40 -232.05 -314.09 -222.60 C -320.79 -213.16 -327.04 -203.43 -332.87 -193.41 C -338.69 -183.40 -344.03 -173.14 -348.93 -162.67 C -353.82 -152.17 -358.23 -141.47 -362.16 -130.56 C -366.10 -119.68 -369.52 -108.63 -372.45 -97.43 C -375.39 -86.22 -377.81 -74.91 -379.72 -63.48 C -381.64 -52.07 -383.01 -40.58 -383.90 -29.03 C -384.77 -17.48 -385.12 -5.93 -384.96 5.65 C -384.79 17.22 -384.09 28.77 -382.89 40.28 C -381.68 51.81 -379.94 63.24 -377.69 74.61 C -375.45 85.96 -372.72 97.21 -369.44 108.31 C -366.18 119.44 -362.44 130.36 -358.19 141.14 C -353.94 151.93 -349.23 162.49 -344.03 172.82 C -338.83 183.18 -333.19 193.27 -327.08 203.11 C -320.97 212.96 -314.42 222.48 -307.46 231.73 C -300.48 240.99 -293.12 249.90 -285.35 258.49 C -277.56 267.07 -269.43 275.28 -260.91 283.13 C -252.40 290.98 -243.53 298.42 -234.35 305.48 C -225.17 312.52 -215.68 319.14 -205.89 325.35 C -196.10 331.54 -186.06 337.26 -175.75 342.56 C -165.45 347.84 -154.93 352.66 -144.19 356.99 " transform="matrix(0.19, 0, 0, 0.19, 191.36, 292.58)"/> </g> <path class="l-atf" d="M 177.03 361.51 C 177.03 362.41 176.94 363.28 176.77 364.15 C 176.60 365.02 176.34 365.87 176.00 366.69 C 175.66 367.51 175.25 368.29 174.75 369.03 C 174.26 369.76 173.70 370.45 173.07 371.07 C 172.44 371.70 171.76 372.26 171.02 372.76 C 170.28 373.25 169.51 373.66 168.69 374.00 C 167.87 374.34 167.02 374.60 166.15 374.77 C 165.28 374.95 164.40 375.03 163.51 375.03 C 162.63 375.03 161.75 374.95 160.88 374.77 C 160.01 374.60 159.16 374.34 158.34 374.00 C 157.52 373.66 156.74 373.25 156.00 372.76 C 155.26 372.26 154.58 371.70 153.96 371.07 C 153.33 370.45 152.77 369.76 152.28 369.03 C 151.78 368.29 151.37 367.51 151.03 366.69 C 150.69 365.87 150.43 365.02 150.26 364.15 C 150.08 363.28 150 362.41 150 361.51 C 150 360.63 150.08 359.75 150.26 358.88 C 150.43 358.01 150.69 357.16 151.03 356.34 C 151.37 355.52 151.78 354.75 152.28 354.01 C 152.77 353.27 153.33 352.58 153.96 351.96 C 154.58 351.33 155.26 350.77 156.00 350.28 C 156.74 349.78 157.52 349.37 158.34 349.03 C 159.16 348.69 160.01 348.43 160.88 348.26 C 161.75 348.08 162.63 348.00 163.51 348.00 C 164.40 348.00 165.28 348.08 166.15 348.26 C 167.02 348.43 167.87 348.69 168.69 349.03 C 169.51 349.37 170.28 349.78 171.02 350.28 C 171.76 350.77 172.44 351.33 173.07 351.96 C 173.70 352.58 174.26 353.27 174.75 354.01 C 175.25 354.75 175.66 355.52 176.00 356.34 C 176.34 357.16 176.60 358.01 176.77 358.88 C 176.94 359.75 177.03 360.63 177.03 361.51 Z M 177.03 361.51 "/> <path class="l-dot" d="M 238.36 360.49 C 238.36 361.04 238.33 361.59 238.28 362.14 C 238.23 362.68 238.14 363.23 238.04 363.76 C 237.93 364.30 237.80 364.83 237.64 365.36 C 237.48 365.88 237.30 366.40 237.08 366.91 C 236.87 367.41 236.64 367.91 236.38 368.39 C 236.12 368.88 235.84 369.35 235.53 369.80 C 235.23 370.26 234.91 370.70 234.55 371.12 C 234.21 371.55 233.84 371.96 233.45 372.34 C 233.06 372.73 232.66 373.10 232.23 373.45 C 231.81 373.80 231.37 374.12 230.91 374.43 C 230.46 374.73 229.98 375.01 229.50 375.28 C 229.01 375.53 228.52 375.77 228.01 375.98 C 227.51 376.19 226.99 376.37 226.46 376.53 C 225.94 376.69 225.41 376.82 224.87 376.93 C 224.33 377.04 223.79 377.12 223.24 377.17 C 222.69 377.23 222.15 377.25 221.60 377.25 C 221.05 377.25 220.50 377.23 219.96 377.17 C 219.41 377.12 218.87 377.04 218.33 376.93 C 217.79 376.82 217.26 376.69 216.73 376.53 C 216.21 376.37 215.69 376.19 215.18 375.98 C 214.68 375.77 214.18 375.53 213.70 375.28 C 213.21 375.01 212.74 374.73 212.29 374.43 C 211.83 374.12 211.39 373.80 210.96 373.45 C 210.54 373.10 210.14 372.73 209.75 372.34 C 209.36 371.96 208.99 371.55 208.64 371.12 C 208.29 370.70 207.97 370.26 207.66 369.80 C 207.36 369.35 207.08 368.88 206.82 368.39 C 206.56 367.91 206.32 367.41 206.11 366.91 C 205.90 366.40 205.72 365.88 205.56 365.36 C 205.40 364.83 205.27 364.30 205.16 363.76 C 205.05 363.23 204.97 362.68 204.92 362.14 C 204.87 361.59 204.84 361.04 204.84 360.49 C 204.84 359.94 204.87 359.40 204.92 358.85 C 204.97 358.30 205.05 357.76 205.16 357.22 C 205.27 356.68 205.40 356.15 205.56 355.63 C 205.72 355.10 205.90 354.58 206.11 354.08 C 206.32 353.57 206.56 353.08 206.82 352.59 C 207.08 352.11 207.36 351.64 207.66 351.18 C 207.97 350.73 208.29 350.28 208.64 349.86 C 208.99 349.44 209.36 349.03 209.75 348.64 C 210.14 348.25 210.54 347.89 210.96 347.53 C 211.39 347.19 211.83 346.86 212.29 346.56 C 212.74 346.25 213.21 345.97 213.70 345.71 C 214.18 345.45 214.68 345.22 215.18 345.01 C 215.69 344.80 216.21 344.61 216.73 344.45 C 217.26 344.29 217.79 344.16 218.33 344.05 C 218.87 343.95 219.41 343.87 219.96 343.81 C 220.50 343.76 221.05 343.73 221.60 343.73 C 222.15 343.73 222.69 343.76 223.24 343.81 C 223.79 343.87 224.33 343.95 224.87 344.05 C 225.41 344.16 225.94 344.29 226.46 344.45 C 226.99 344.61 227.51 344.80 228.01 345.01 C 228.52 345.22 229.01 345.45 229.50 345.71 C 229.98 345.97 230.46 346.25 230.91 346.56 C 231.37 346.86 231.81 347.19 232.23 347.53 C 232.66 347.89 233.06 348.25 233.45 348.64 C 233.84 349.03 234.21 349.44 234.55 349.86 C 234.91 350.28 235.23 350.73 235.53 351.18 C 235.84 351.64 236.12 352.11 236.38 352.59 C 236.64 353.08 236.87 353.57 237.08 354.08 C 237.30 354.58 237.48 355.10 237.64 355.63 C 237.80 356.15 237.93 356.68 238.04 357.22 C 238.14 357.76 238.23 358.30 238.28 358.85 C 238.33 359.40 238.36 359.94 238.36 360.49 Z M 238.36 360.49 "/></symbol>
+  <symbol id="star" viewBox="0 0 24 24"><path d="M12 2.5l2.9 6.2 6.6.8-4.9 4.6 1.3 6.6L12 17.4l-5.9 3.3 1.3-6.6L2.5 9.5l6.6-.8z"></path></symbol>
+</svg>
+
+<header class="nav">
+  <div class="wrap">
+    <a href="#top" aria-label="TapAt home"><svg viewBox="0 0 160.7 48.4" role="img" aria-label="tap@"><use href="#logo"></use></svg></a>
+    <ul>
+      <li><a href="#owners">your dashboard</a></li>
+      <li><a href="#how">how it works</a></li>
+      <li><a href="#guests">guest view</a></li>
+      <li><a href="#faq">questions</a></li>
+    </ul>
+    <a class="btn" href="#contact">get tap@</a>
+  </div>
+</header>
+
+<main id="top">
+<section class="band hero">
+  <div class="wrap">
+    <div class="stack" style="gap:28px">
+      <div class="lockup" aria-hidden="true">
+        <svg viewBox="0 0 160.7 48.4"><use href="#logo"></use></svg>
+        <div class="kin"><span id="kin">your table</span></div>
+      </div>
+      <h1>What if every table could take its own order?</h1>
+      <p class="sub">TapAt puts your menu, ordering and loyalty on a small tag at each table. Guests tap and order from their seat. You watch every order arrive, live.</p>
+      <div class="cta-row">
+        <a class="btn btn-chili" href="#guests">try the guest view</a>
+        <a class="btn btn-ghost" href="#owners">see your dashboard</a>
+      </div>
+    </div>
+    <div class="sticker" aria-hidden="true">
+      <svg viewBox="0 0 181.7 178.6"><use href="#sym"></use></svg>
+      <b>tap here</b>
+    </div>
+  </div>
+</section>
+
+<section class="band" id="answers">
+  <div class="wrap stack" style="gap:36px">
+    <div class="stack">
+      <span class="pill">for owners</span>
+      <h2>questions you can finally answer.</h2>
+      <p class="lead">Every order placed through TapAt tells you something about your restaurant.</p>
+    </div>
+    <div class="qs">
+      <div><h3>which table has waited longest?</h3><p>Live orders show every open table and how long it has been waiting.</p></div>
+      <div><h3>what sold best this week?</h3><p>Best and worst sellers for any period, for each branch.</p></div>
+      <div><h3>when are we busiest?</h3><p>Your busiest hours and days, compared with the period before.</p></div>
+      <div><h3>what did table 12 think?</h3><p>Ratings and comments arrive with the branch and table attached.</p></div>
+      <div><h3>who keeps coming back?</h3><p>Order history shows what each member ordered, and you can search it.</p></div>
+      <div><h3>what just ran out?</h3><p>Mark a dish sold out in one tap. It changes on the menu at that branch instantly.</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="band owners" id="owners">
+  <div class="wrap stack" style="gap:44px">
+    <div class="stack">
+      <span class="pill">your dashboard</span>
+      <h2>every order, <span style="color:var(--grape)">live.</span></h2>
+      <p class="lead">Orders reach your dashboard the moment a guest sends them, with how long each table has waited. Keep it open on any screen, and turn on the sound alert for new orders.</p>
+    </div>
+    <div class="dash">
+      <div class="dash-h"><b>live orders</b><span class="live"><i></i>today</span></div>
+      <div class="scroll">
+        <table>
+          <tbody>
+            <tr><td>table 7</td><td>3 items</td><td><span class="st st-new">new</span></td><td>just now</td></tr>
+            <tr><td>table 3</td><td>2 items</td><td><span class="st st-prep">preparing</span></td><td>4 min</td></tr>
+            <tr><td>table 12</td><td>5 items</td><td><span class="st st-ready">ready</span></td><td>9 min</td></tr>
+            <tr><td>table 5</td><td>1 item</td><td><span class="st st-served">served</span></td><td>done</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="feats">
+      <div><h3>menu control</h3><p>Mark an item sold out per branch, or edit names, prices and categories. Changes apply instantly.</p></div>
+      <div><h3>dashboard</h3><p>Revenue, orders and customers by branch and period, with your top five best sellers.</p></div>
+      <div><h3>insights</h3><p>Busiest hours and days, cash against card, revenue by category and your top tables.</p></div>
+      <div><h3>feedback</h3><p>Average rating, star breakdown and every comment, with the branch and table it came from.</p></div>
+      <div><h3>customers</h3><p>Member counts, age bands and who orders what. Guests choose what they share with you.</p></div>
+      <div><h3>multi-branch</h3><p>Run several branches or restaurants from one owner login.</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="band" id="how">
+  <div class="wrap stack" style="gap:36px">
+    <div class="stack">
+      <span class="pill">how it works</span>
+      <h2>one tag. four steps.</h2>
+    </div>
+    <ol class="steps">
+      <li><h3>a tag on every table</h3><p>Each tag holds a link that already knows your restaurant, branch and table number.</p></li>
+      <li><h3>guests tap their phone</h3><p>The page opens in the browser on iPhone and Android. There is no app to download.</p></li>
+      <li><h3>they order from their seat</h3><p>Menu, cart and checkout, with the table already filled in. Cash or card, paid at the table.</p></li>
+      <li><h3>you see it live</h3><p>The order reaches your dashboard in real time, and you move it along as the kitchen works.</p></li>
+    </ol>
+  </div>
+</section>
+
+<section class="band guests" id="guests">
+  <div class="wrap stack" style="gap:36px">
+    <div class="stack">
+      <span class="pill">for guests</span>
+      <h2>be your own guest for a minute.</h2>
+      <p class="lead">This is what opens when someone taps the tag at table 7. Add a dish, send the order, leave a rating. Your version carries your logo, banner, menu and rewards.</p>
+    </div>
+    <div class="demo">
+      <div class="stack">
+        <div class="tabs" role="tablist" aria-label="Guest screens">
+          <button class="tab" role="tab" id="t-menu" aria-controls="pane" aria-selected="true" data-tab="menu"><b>menu</b><span>Browse and search your menu, or open the full PDF.</span></button>
+          <button class="tab" role="tab" id="t-order" aria-controls="pane" aria-selected="false" data-tab="order"><b>order</b><span>Add to cart and send. The table number comes from the tag.</span></button>
+          <button class="tab" role="tab" id="t-rewards" aria-controls="pane" aria-selected="false" data-tab="rewards"><b>rewards</b><span>Points on every order, redeemed for the rewards you set.</span></button>
+          <button class="tab" role="tab" id="t-feedback" aria-controls="pane" aria-selected="false" data-tab="feedback"><b>feedback</b><span>A star rating and a comment, sent to you anonymously.</span></button>
+        </div>
+        <p class="more">Guests also get one-tap links to your Google reviews, Instagram, Facebook and TikTok, and a puzzle game, BlockBomb, to play while they wait.</p>
+      </div>
+      <div>
+        <div class="phone">
+          <div class="screen">
+            <div class="shead"><small>tap @ table 7</small><b>your restaurant</b></div>
+            <div class="pane" id="pane" role="tabpanel" aria-live="polite"></div>
+          </div>
+        </div>
+        <p class="eg">Example screens with sample dishes and prices.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+
+<section class="band" id="faq">
+  <div class="wrap stack" style="gap:36px">
+    <div class="stack">
+      <span class="pill">questions</span>
+      <h2>good to know.</h2>
+    </div>
+    <div class="faq">
+      <div><h3>do guests need an app?</h3><p>No. The tag opens a web page in the phone's browser, on iPhone and Android.</p></div>
+      <div><h3>how do guests pay?</h3><p>At the table, as they do today. They choose cash or card when they order, so your staff know what to bring.</p></div>
+      <div><h3>what do I need in the restaurant?</h3><p>One NFC tag per table, and a phone, tablet or computer that stays on your dashboard.</p></div>
+      <div><h3>what if a phone has no NFC?</h3><p>Each table also has a link that opens the same page, so every guest can order.</p></div>
+      <div><h3>what do I learn about my guests?</h3><p>Only what they agree to share: age, gender and a shortened name. Their email and phone number are never shared with restaurants.</p></div>
+      <div><h3>can I run more than one branch?</h3><p>Yes. Each branch has its own tables, sold-out items and numbers, under one login.</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="band contact" id="contact">
+  <div class="wrap">
+    <span class="pill">get tap@</span>
+    <h2>curious how it looks with your menu?</h2>
+    <p class="lead">Send us your menu and how many tables you have. We'll show you TapAt set up as your restaurant.</p>
+    <p class="addr" id="addr">+20 100 984 9893</p>
+    <div class="cta-row">
+      <a class="btn btn-chili" id="contact-link" href="https://wa.me/201009849893" target="_blank" rel="noopener">message us on WhatsApp</a>
+      <button class="btn btn-ink" id="copy" type="button" style="background:transparent;color:var(--white);box-shadow:inset 0 0 0 2px var(--white)">copy</button>
+    </div>
+  </div>
+</section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <svg viewBox="0 0 160.7 48.4" role="img" aria-label="tap@"><use href="#logo"></use></svg>
+    <span>order @ your table. tapat.co</span>
+    <span>© 2026 TapAt</span>
+  </div>
+</footer>
+
+<script>
+(function(){
+  var reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  /* kinetic word: hold 1.5s, move 400ms */
+  var words = ['your table','table 7','brunch','9pm','your cafe'], wi = 0, kin = document.getElementById('kin');
+  if (!reduce) setInterval(function(){
+    kin.className = 'out';
+    setTimeout(function(){ wi = (wi + 1) % words.length; kin.textContent = words[wi]; kin.className = 'in'; }, 400);
+  }, 1900);
+
+  /* guest demo */
+  var MENU = [
+    {id:'chicken', name:'Grilled chicken', price:220},
+    {id:'pizza', name:'Margherita', price:180},
+    {id:'latte', name:'Iced latte', price:80},
+    {id:'mint', name:'Lemon mint', price:65}
+  ];
+  var S = {tab:'menu', cart:{chicken:1, mint:1}, pay:'cash', sent:false, stars:0, fb:false};
+  var pane = document.getElementById('pane');
+  function count(){ var n = 0; for (var k in S.cart) n += S.cart[k]; return n; }
+  function total(){ var t = 0; MENU.forEach(function(m){ t += (S.cart[m.id]||0) * m.price; }); return t; }
+  function esc(s){ return String(s).replace(/[&<>"]/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
+  var V = {
+    menu: function(){
+      return MENU.map(function(m){
+        return '<div class="row"><div><b>'+esc(m.name)+'</b><br><small>EGP '+m.price+'</small></div>'+
+          '<button class="add" data-add="'+m.id+'" aria-label="Add '+esc(m.name)+'">+</button></div>';
+      }).join('') + '<button class="bar" data-go="order"><span>view order ('+count()+')</span><span>EGP '+total()+'</span></button>';
+    },
+    order: function(){
+      if (S.sent) return '<div class="sent"><p class="big">order sent. the kitchen’s on it.</p><p>Table 7, paying by '+S.pay+' at the table.</p></div>'+
+        '<button class="bar" data-reset="1" style="background:var(--mist)"><span>start a new order</span><span></span></button>';
+      var rows = MENU.filter(function(m){ return S.cart[m.id]; }).map(function(m){
+        return '<div class="row"><b>'+S.cart[m.id]+' × '+esc(m.name)+'</b><small>EGP '+(S.cart[m.id]*m.price)+'</small></div>';
+      }).join('') || '<p class="note">Your cart is empty. Add something from the menu.</p>';
+      return rows + '<p class="note">Pay at the table with</p><div class="seg">'+
+        '<button data-pay="cash" aria-pressed="'+(S.pay==='cash')+'">cash</button>'+
+        '<button data-pay="card" aria-pressed="'+(S.pay==='card')+'">card</button></div>'+
+        '<button class="bar" data-send="1"'+(count()?'':' disabled')+'><span>send order</span><span>EGP '+total()+'</span></button>';
+    },
+    rewards: function(){
+      return '<div class="card-ink"><small>loyalty</small><p class="big">120 points</p><div class="meter"><i></i></div><p>80 more for a free dessert.</p></div>'+
+        '<p class="note">Guests earn points on every order and show a personal QR code to your staff to redeem. You set the rewards.</p>';
+    },
+    feedback: function(){
+      if (S.fb) return '<div class="sent"><p class="big">sent. thank you.</p><p>The restaurant sees your rating with the branch and table, without your name.</p></div>';
+      var stars = [1,2,3,4,5].map(function(n){
+        return '<button data-star="'+n+'" class="'+(n<=S.stars?'on':'')+'" aria-label="'+n+' star'+(n>1?'s':'')+'" aria-pressed="'+(n<=S.stars)+'"><svg><use href="#star"></use></svg></button>';
+      }).join('');
+      return '<p class="big">how was it?</p><div class="stars">'+stars+'</div>'+
+        '<label class="note" for="fb-text">Leave a comment</label><textarea id="fb-text" placeholder="Tell the restaurant"></textarea>'+
+        '<button class="bar" data-fb="1"'+(S.stars?'':' disabled')+'><span>send feedback</span><span>anonymous</span></button>';
+    }
+  };
+  function render(){
+    pane.innerHTML = V[S.tab]();
+    document.querySelectorAll('.tab').forEach(function(t){ t.setAttribute('aria-selected', String(t.dataset.tab === S.tab)); });
+    pane.setAttribute('aria-labelledby', 't-' + S.tab);
+  }
+  document.querySelector('.tabs').addEventListener('click', function(e){
+    var t = e.target.closest('.tab'); if (!t) return; S.tab = t.dataset.tab; render();
+  });
+  pane.addEventListener('click', function(e){
+    var b = e.target.closest('button'); if (!b) return; var d = b.dataset;
+    if (d.add){ S.cart[d.add] = (S.cart[d.add]||0) + 1; S.sent = false; }
+    else if (d.go){ S.tab = d.go; }
+    else if (d.pay){ S.pay = d.pay; }
+    else if (d.send){ S.sent = true; }
+    else if (d.reset){ S.cart = {}; S.sent = false; S.tab = 'menu'; }
+    else if (d.star){ S.stars = +d.star; }
+    else if (d.fb){ S.fb = true; }
+    render();
+  });
+  render();
+
+  /* contact: copy the address */
+  var copy = document.getElementById('copy'), addr = document.getElementById('addr');
+  copy.addEventListener('click', function(){
+    var done = function(){ copy.textContent = 'copied'; setTimeout(function(){ copy.textContent = 'copy'; }, 1600); };
+    var sel = function(){ var r = document.createRange(); r.selectNodeContents(addr); var s = getSelection(); s.removeAllRanges(); s.addRange(r); };
+    try { navigator.clipboard.writeText(addr.textContent.trim()).then(done, sel); } catch (err) { sel(); }
+  });
+})();
+</script>
+
 </body>
 </html>
