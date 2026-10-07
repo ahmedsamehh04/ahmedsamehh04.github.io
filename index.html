@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <script>
-/* Tag links (/?restaurant=...) open the diner app: swap in the app shell (404.html) and keep the URL. */
-if(/[?&]restaurant=/.test(location.search)){document.documentElement.style.visibility='hidden';fetch('/404.html').then(function(r){return r.text()}).then(function(h){
+/* Tag links (/?restaurant=...) open the diner app: swap in the app shell (404.html) and keep the URL. no-cache: always revalidate it, so a new deploy shows up at once (the bundles it loads have hashed names). */
+if(/[?&]restaurant=/.test(location.search)){document.documentElement.style.visibility='hidden';fetch('/404.html',{cache:'no-cache'}).then(function(r){return r.text()}).then(function(h){
 var d=new DOMParser().parseFromString(h,'text/html');
 document.head.innerHTML=d.head.innerHTML;document.body.innerHTML=d.body.innerHTML;document.body.removeAttribute('class');
 document.documentElement.style.visibility='';
