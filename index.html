@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <script>
-/* Tag links (/?restaurant=...) open the diner app: stop loading this marketing page (its images, fonts and
+/* Tag links (/?restaurant=...) open the diner app: stop parsing this marketing page (its images, fonts and
    scripts), fetch the app shell (404.html, always revalidated so a new deploy shows at once) and swap it in,
    keeping the URL. A tab that already opened a tag (sessionStorage, see src/hooks/useDeepLink.js) also goes
    to the app, so reloading tapat.co/ after an order stays in the restaurant. */
@@ -11,22 +11,24 @@
 var tag=/[?&]restaurant=/.test(location.search);
 if(!tag){try{tag=!!sessionStorage.getItem('taptaste.tagLink')}catch(e){}}
 if(!tag)return;
-try{window.stop()}catch(e){}
+/* Swallow the rest of this page: the parser reads everything after this tag as hidden text, so its images,
+   fonts and scripts never load. (Not window.stop(): Chrome then never paints the page again and ignores
+   document.open(), so the app ran but the screen stayed blank.) */
+document.write('<plaintext style="display:none">');
 /* Anything that goes wrong while the app starts is kept, and shown if it doesn't appear (see check()). */
 var errors=[];
+function listen(){
 window.addEventListener('error',function(e){errors.push(e.message||(e.target&&e.target.src?'Could not load '+e.target.src:'Script error'))},true);
 window.addEventListener('unhandledrejection',function(e){var r=e.reason;errors.push('Unhandled: '+(r&&(r.message||r.code)||r))});
-document.documentElement.style.visibility='hidden';
-function body(){if(!document.body)document.documentElement.appendChild(document.createElement('body'));return document.body}
+}
+listen();
 function fail(message){
-  document.documentElement.style.visibility='';
-  document.documentElement.style.colorScheme='light';
-  document.head.innerHTML='<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>TapAt</title>';
-  body().style.background='#FFFFFF';
-  body().innerHTML='<div style="font-family:system-ui,sans-serif;max-width:420px;margin:25vh auto 0;padding:0 16px;text-align:center;color:#16141F"><p style="font-size:17px"></p><pre style="white-space:pre-wrap;font-size:12px;color:#5B5769;text-align:left"></pre><button style="font:inherit;font-size:17px;padding:12px 28px;border:0;border-radius:999px;background:#16141F;color:#fff">Reload</button></div>';
-  body().querySelector('p').textContent=message||"Couldn't open the menu. Check your connection.";
-  body().querySelector('pre').textContent=errors.slice(0,5).join('\n');
-  body().querySelector('button').onclick=function(){location.reload()};
+  document.open();
+  document.write('<!doctype html><html style="color-scheme:light"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>TapAt</title></head><body style="margin:0;background:#FFFFFF"><div style="font-family:system-ui,sans-serif;max-width:420px;margin:25vh auto 0;padding:0 16px;text-align:center;color:#16141F"><p style="font-size:17px"></p><pre style="white-space:pre-wrap;font-size:12px;color:#5B5769;text-align:left"></pre><button style="font:inherit;font-size:17px;padding:12px 28px;border:0;border-radius:999px;background:#16141F;color:#fff">Reload</button></div></body></html>');
+  document.close();
+  document.querySelector('p').textContent=message||"Couldn't open the menu. Check your connection.";
+  document.querySelector('pre').textContent=errors.slice(0,5).join('\n');
+  document.querySelector('button').onclick=function(){location.reload()};
 }
 /* The app draws into #root. If it is still empty after 8 seconds, show why instead of a blank page. */
 function check(){
@@ -34,12 +36,11 @@ function check(){
   if(!root||!root.children.length||!(root.innerText||'').trim())fail("The menu didn't open in this browser."+(errors.length?' Details:':' No error was reported; try reloading.'));
 }
 fetch('/404.html',{cache:'no-cache'}).then(function(r){if(!r.ok)throw new Error(r.status);return r.text()}).then(function(h){
-var d=new DOMParser().parseFromString(h,'text/html');
-var scripts=d.querySelectorAll('script[src]');
-if(!scripts.length)throw new Error('no app');
-document.head.innerHTML=d.head.innerHTML;body().innerHTML=d.body.innerHTML;body().removeAttribute('class');
-document.documentElement.style.visibility='';
-scripts.forEach(function(o){var n=document.createElement('script');n.src=o.src;n.onerror=function(){errors.push('Could not load '+o.src);fail()};document.head.appendChild(n)});
+if(!/<script[^>]+src=/i.test(h))throw new Error('no app');
+/* Replace the whole document with the app shell (document.open() also drops the error listeners, so they
+   are added again). */
+document.open();document.write(h);document.close();
+listen();
 setTimeout(check,8000)}).catch(function(e){errors.push(String(e&&e.message||e));fail()});
 })();
 </script>
