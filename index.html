@@ -3,12 +3,31 @@
 <head>
 <meta charset="utf-8">
 <script>
-/* Tag links (/?restaurant=...) open the diner app: swap in the app shell (404.html) and keep the URL. no-cache: always revalidate it, so a new deploy shows up at once (the bundles it loads have hashed names). */
-if(/[?&]restaurant=/.test(location.search)){document.documentElement.style.visibility='hidden';fetch('/404.html',{cache:'no-cache'}).then(function(r){return r.text()}).then(function(h){
+/* Tag links (/?restaurant=...) open the diner app: stop loading this marketing page (its images, fonts and
+   scripts), fetch the app shell (404.html, always revalidated so a new deploy shows at once) and swap it in,
+   keeping the URL. A tab that already opened a tag (sessionStorage, see src/hooks/useDeepLink.js) also goes
+   to the app, so reloading tapat.co/ after an order stays in the restaurant. */
+(function(){
+var tag=/[?&]restaurant=/.test(location.search);
+if(!tag){try{tag=!!sessionStorage.getItem('taptaste.tagLink')}catch(e){}}
+if(!tag)return;
+try{window.stop()}catch(e){}
+document.documentElement.style.visibility='hidden';
+function body(){if(!document.body)document.documentElement.appendChild(document.createElement('body'));return document.body}
+function fail(){
+  document.documentElement.style.visibility='';
+  document.head.innerHTML='<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>TapAt</title>';
+  body().innerHTML='<div style="font-family:system-ui,sans-serif;max-width:320px;margin:30vh auto 0;padding:0 16px;text-align:center;color:#16141F"><p style="font-size:17px">Couldn\'t open the menu. Check your connection.</p><button style="font:inherit;font-size:17px;padding:12px 28px;border:0;border-radius:999px;background:#16141F;color:#fff">Retry</button></div>';
+  document.body.querySelector('button').onclick=function(){location.reload()};
+}
+fetch('/404.html',{cache:'no-cache'}).then(function(r){if(!r.ok)throw new Error(r.status);return r.text()}).then(function(h){
 var d=new DOMParser().parseFromString(h,'text/html');
-document.head.innerHTML=d.head.innerHTML;document.body.innerHTML=d.body.innerHTML;document.body.removeAttribute('class');
+var scripts=d.querySelectorAll('script[src]');
+if(!scripts.length)throw new Error('no app');
+document.head.innerHTML=d.head.innerHTML;body().innerHTML=d.body.innerHTML;body().removeAttribute('class');
 document.documentElement.style.visibility='';
-d.querySelectorAll('script[src]').forEach(function(o){var n=document.createElement('script');n.src=o.src;document.head.appendChild(n)})})}
+scripts.forEach(function(o){var n=document.createElement('script');n.src=o.src;n.onerror=fail;document.head.appendChild(n)})}).catch(fail);
+})();
 </script>
 <link rel="icon" href="/favicon.ico" sizes="48x48">
 <link rel="icon" type="image/png" href="/favicon-192.png" sizes="192x192">
@@ -272,7 +291,7 @@ footer svg{height:28px;width:auto;display:block}
       <p class="desc" data-desc-out>Revenue, orders and customers for any branch and period, your best sellers and recent orders, with live orders one tap away.</p>
       <div class="browser" id="o-view" role="tabpanel">
         <div class="browser-bar" aria-hidden="true"><i></i><i></i><i></i></div>
-        <div class="view" data-imgs tabindex="0" aria-label="Dashboard screen, scrollable"><img src="img/admin-dashboard-1.png" width="1500" height="747" alt="Dashboard with revenue, orders, customers, best selling items and recent orders"><img src="img/admin-dashboard-2.png" width="1500" height="487" alt="" loading="lazy"></div>
+        <div class="view" data-imgs tabindex="0" aria-label="Dashboard screen, scrollable"><img loading="lazy" src="img/admin-dashboard-1.png" width="1500" height="747" alt="Dashboard with revenue, orders, customers, best selling items and recent orders"><img src="img/admin-dashboard-2.png" width="1500" height="487" alt="" loading="lazy"></div>
       </div>
     </div>
   </div>
@@ -315,7 +334,7 @@ footer svg{height:28px;width:auto;display:block}
       </div>
       <div>
         <div class="phone">
-          <div class="screen" id="g-view" role="tabpanel" data-imgs tabindex="0" aria-label="Phone screen, scrollable"><img src="img/guest-home-1.png" width="620" height="1031" alt="Guest home screen for Demo Cafe table 5 with a stamp card and links to the menu, ordering, rewards, feedback and a game"><img src="img/guest-home-2.png" width="620" height="410" alt="" loading="lazy"></div>
+          <div class="screen" id="g-view" role="tabpanel" data-imgs tabindex="0" aria-label="Phone screen, scrollable"><img loading="lazy" src="img/guest-home-1.png" width="620" height="1031" alt="Guest home screen for Demo Cafe table 5 with a stamp card and links to the menu, ordering, rewards, feedback and a game"><img src="img/guest-home-2.png" width="620" height="410" alt="" loading="lazy"></div>
         </div>
         <p class="eg">Real screens from the app, shown with a demo cafe and test data.</p>
       </div>
