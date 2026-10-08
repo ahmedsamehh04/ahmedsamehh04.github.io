@@ -12,13 +12,26 @@ var tag=/[?&]restaurant=/.test(location.search);
 if(!tag){try{tag=!!sessionStorage.getItem('taptaste.tagLink')}catch(e){}}
 if(!tag)return;
 try{window.stop()}catch(e){}
+/* Anything that goes wrong while the app starts is kept, and shown if it doesn't appear (see check()). */
+var errors=[];
+window.addEventListener('error',function(e){errors.push(e.message||(e.target&&e.target.src?'Could not load '+e.target.src:'Script error'))},true);
+window.addEventListener('unhandledrejection',function(e){var r=e.reason;errors.push('Unhandled: '+(r&&(r.message||r.code)||r))});
 document.documentElement.style.visibility='hidden';
 function body(){if(!document.body)document.documentElement.appendChild(document.createElement('body'));return document.body}
-function fail(){
+function fail(message){
   document.documentElement.style.visibility='';
+  document.documentElement.style.colorScheme='light';
   document.head.innerHTML='<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>TapAt</title>';
-  body().innerHTML='<div style="font-family:system-ui,sans-serif;max-width:320px;margin:30vh auto 0;padding:0 16px;text-align:center;color:#16141F"><p style="font-size:17px">Couldn\'t open the menu. Check your connection.</p><button style="font:inherit;font-size:17px;padding:12px 28px;border:0;border-radius:999px;background:#16141F;color:#fff">Retry</button></div>';
-  document.body.querySelector('button').onclick=function(){location.reload()};
+  body().style.background='#FFFFFF';
+  body().innerHTML='<div style="font-family:system-ui,sans-serif;max-width:420px;margin:25vh auto 0;padding:0 16px;text-align:center;color:#16141F"><p style="font-size:17px"></p><pre style="white-space:pre-wrap;font-size:12px;color:#5B5769;text-align:left"></pre><button style="font:inherit;font-size:17px;padding:12px 28px;border:0;border-radius:999px;background:#16141F;color:#fff">Reload</button></div>';
+  body().querySelector('p').textContent=message||"Couldn't open the menu. Check your connection.";
+  body().querySelector('pre').textContent=errors.slice(0,5).join('\n');
+  body().querySelector('button').onclick=function(){location.reload()};
+}
+/* The app draws into #root. If it is still empty after 8 seconds, show why instead of a blank page. */
+function check(){
+  var root=document.getElementById('root');
+  if(!root||!root.children.length||!(root.innerText||'').trim())fail("The menu didn't open in this browser."+(errors.length?' Details:':' No error was reported; try reloading.'));
 }
 fetch('/404.html',{cache:'no-cache'}).then(function(r){if(!r.ok)throw new Error(r.status);return r.text()}).then(function(h){
 var d=new DOMParser().parseFromString(h,'text/html');
@@ -26,7 +39,8 @@ var scripts=d.querySelectorAll('script[src]');
 if(!scripts.length)throw new Error('no app');
 document.head.innerHTML=d.head.innerHTML;body().innerHTML=d.body.innerHTML;body().removeAttribute('class');
 document.documentElement.style.visibility='';
-scripts.forEach(function(o){var n=document.createElement('script');n.src=o.src;n.onerror=fail;document.head.appendChild(n)})}).catch(fail);
+scripts.forEach(function(o){var n=document.createElement('script');n.src=o.src;n.onerror=function(){errors.push('Could not load '+o.src);fail()};document.head.appendChild(n)});
+setTimeout(check,8000)}).catch(function(e){errors.push(String(e&&e.message||e));fail()});
 })();
 </script>
 <link rel="icon" href="/favicon.ico" sizes="48x48">
